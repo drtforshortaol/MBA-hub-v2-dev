@@ -1,0 +1,59 @@
+name: Publish orange MBA Hub DEV
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/deploy-developer.yml'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: developer-pages
+  cancel-in-progress: false
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout canonical app source
+        uses: actions/checkout@v4
+        with:
+          repository: drtforshortaol/MBA-hub-v2
+          ref: work/device-acceptance-prep-20261030
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned parser
+        working-directory: source
+        run: python -m pip install --requirement scripts/migration/requirements-fidelity.txt
+      - name: Build and verify
+        working-directory: source
+        run: |
+          npm run build
+          node scripts/audit-privacy-snapshot.mjs --write-reviewed-binding
+          npm test
+          npm run security:scan
+          node scripts/verify-build-artifacts.mjs
+      - name: Verify DEV identity
+        working-directory: source
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          const m=JSON.parse(fs.readFileSync('dist/developer/manifest.webmanifest'));
+          const e=JSON.parse(fs.readFileSync('dist/developer/environment.json'));
+          if(m.name!=='MBA Hub DEV'||!e.developer||e.namespace!=='mba-v2-developer') throw Error('Wrong channel');
+          if(!fs.readFileSync('dist/developer/icon.svg','utf8').includes('#d66b12')) throw Error('Orange icon missing');
+          if(!fs.readFileSync('dist/developer/core/hub.js','utf8').includes('toggleDeveloper')) throw Error('Five-tap activation missing');
+          EOF
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: source/dist/developer
+      - uses: actions/deploy-pages@v4
