@@ -52,6 +52,19 @@ jobs:
           if(!fs.readFileSync('dist/developer/icon.svg','utf8').includes('#d66b12')) throw Error('Orange icon missing');
           if(!fs.readFileSync('dist/developer/core/hub.js','utf8').includes('toggleDeveloper')) throw Error('Five-tap activation missing');
           EOF
+      - name: Apply isolated orange DEV visual identity
+        run: |
+          cat >> source/dist/developer/core/hub.css <<'EOF'
+          /* Owner-only DEV branding; canonical and guide bundles remain unchanged. */
+          body:has(#title) header { background: #a64b0b; border-bottom-color: #f0ae43; }
+          body:has(#title) header p { color: #fff0dc; }
+          body:has(#title) #title small { color: #ffe0a0; }
+          body:has(#title) .search-icon { background: #c46a19; }
+          body:has(#title) .statusline { color: #ffe0a0; }
+          body:has(#title) .open-app, body:has(#title) .button { background: #fff0d9; color: #753700; }
+          body:has(#title) #developer { border-top-color: #f0ae43; }
+          EOF
+          grep -q '#a64b0b' source/dist/developer/core/hub.css
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
