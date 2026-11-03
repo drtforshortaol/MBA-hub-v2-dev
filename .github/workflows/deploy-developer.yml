@@ -52,10 +52,34 @@ jobs:
           if(!fs.readFileSync('dist/developer/icon.svg','utf8').includes('#d66b12')) throw Error('Orange icon missing');
           if(!fs.readFileSync('dist/developer/core/hub.js','utf8').includes('toggleDeveloper')) throw Error('Five-tap activation missing');
           EOF
-      - name: Apply isolated orange DEV visual identity
+      - name: Prepare orange Developer installation identity and direct QR
         run: |
-          cat >> source/dist/developer/core/hub.css <<'EOF'
-          /* Owner-only DEV branding; canonical and guide bundles remain unchanged. */
+          python -m pip install 'qrcode[pil]==8.2'
+          python - <<'PY'
+          from pathlib import Path
+          import qrcode
+          url='https://drtforshortaol.github.io/MBA-hub-v2-dev/'
+          install=Path('source/src/install.html')
+          text=install.read_text()
+          text=text.replace('MBA Hub V2 | Install &amp; Help','MBA Hub DEV | Install &amp; Help')
+          text=text.replace('MBA Hub V2 Guide address','MBA Hub DEV installation address')
+          text=text.replace('Blue MBA Hub V2 Guide','Orange MBA Hub DEV')
+          text=text.replace('Guide evaluation version.','Owner Developer version.')
+          text=text.replace('Keep MBA Hub V1 available as a backup. Install V2 once; subsequent updates normally do not require reinstallation.','Keep the blue Guide installed separately. Developer updates normally do not require reinstallation.')
+          text=text.replace('The same Guide link and QR code work on iPhone, Android, Windows, and Mac.','The same Developer link and QR code work on iPhone, Android, Windows, and Mac.')
+          text=text.replace('https://drtforshortaol.github.io/MBA-hub-v2/','https://drtforshortaol.github.io/MBA-hub-v2-dev/')
+          text=text.replace('Universal MBA Hub V2 Guide QR code','Universal MBA Hub DEV QR code')
+          text=text.replace('Return to MBA Hub V2','Return to MBA Hub DEV')
+          text=text.replace('MBA Hub Version 2 — installation and assistance','MBA Hub DEV — installation and assistance')
+          text=text.replace('Guide evaluation version','Developer version')
+          install.write_text(text)
+          qr=qrcode.QRCode(border=4,box_size=10,error_correction=qrcode.constants.ERROR_CORRECT_M)
+          qr.add_data(url,optimize=0)
+          qr.make(fit=True)
+          qr.make_image(fill_color='black',back_color='white').save('source/src/install-qr.png')
+          css=Path('source/src/core/hub.css')
+          css.write_text(css.read_text()+"""
+          /* Developer-only orange identity. Applied before release hashing. */
           body:has(#title) header { background: #a64b0b; border-bottom-color: #f0ae43; }
           body:has(#title) header p { color: #fff0dc; }
           body:has(#title) #title small { color: #ffe0a0; }
@@ -63,8 +87,26 @@ jobs:
           body:has(#title) .statusline { color: #ffe0a0; }
           body:has(#title) .open-app, body:has(#title) .button { background: #fff0d9; color: #753700; }
           body:has(#title) #developer { border-top-color: #f0ae43; }
+          """)
+          PY
+      - name: Build integrity-bound orange Developer distribution
+        working-directory: source
+        run: |
+          npm run build
+          node scripts/verify-build-artifacts.mjs
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          const root='dist/developer/';
+          const manifest=JSON.parse(fs.readFileSync(root+'manifest.webmanifest'));
+          const env=JSON.parse(fs.readFileSync(root+'environment.json'));
+          const help=fs.readFileSync(root+'install.html','utf8');
+          const css=fs.readFileSync(root+'core/hub.css','utf8');
+          const hub=fs.readFileSync(root+'core/hub.js','utf8');
+          if(manifest.name!=='MBA Hub DEV'||!env.developer||env.namespace!=='mba-v2-developer')throw Error('Developer identity mismatch');
+          if(!help.includes('https://drtforshortaol.github.io/MBA-hub-v2-dev/')||!help.includes('id="copy-guide-url"'))throw Error('Developer copy link missing');
+          if(help.includes('https://drtforshortaol.github.io/MBA-hub-v2/'))throw Error('Guide URL leaked into developer help');
+          if(!css.includes('#a64b0b')||!hub.includes('toggleDeveloper'))throw Error('Orange / five-tap behavior changed');
           EOF
-          grep -q '#a64b0b' source/dist/developer/core/hub.css
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
