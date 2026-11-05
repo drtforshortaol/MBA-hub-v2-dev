@@ -65,7 +65,6 @@ jobs:
           text=text.replace('Blue MBA Hub V2 Guide address','Orange MBA Hub DEV installation address')
           text=text.replace('Open Guide','Open Developer')
           text=text.replace('MBA Hub V2 Guide installation link','MBA Hub DEV installation link')
-          text=text.replace('Universal MBA Hub V2 Guide QR code','Universal MBA Hub DEV QR code')
           text=text.replace('Open the blue Hub icon','Open the orange DEV icon')
           text=text.replace('universal Guide link','universal Developer link')
           text=text.replace('Step-by-step instructions for volunteers','Step-by-step instructions for the owner')
