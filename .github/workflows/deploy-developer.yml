@@ -62,7 +62,13 @@ jobs:
           install=Path('source/src/install.html')
           text=install.read_text()
           text=text.replace('MBA Hub V2 | Install &amp; Help','MBA Hub DEV | Install &amp; Help')
-          text=text.replace('MBA Hub V2 Guide address','MBA Hub DEV installation address')
+          text=text.replace('Blue MBA Hub V2 Guide address','Orange MBA Hub DEV installation address')
+          text=text.replace('Open Guide','Open Developer')
+          text=text.replace('MBA Hub V2 Guide installation link','MBA Hub DEV installation link')
+          text=text.replace('Universal MBA Hub V2 Guide QR code','Universal MBA Hub DEV QR code')
+          text=text.replace('Open the blue Hub icon','Open the orange DEV icon')
+          text=text.replace('universal Guide link','universal Developer link')
+          text=text.replace('Step-by-step instructions for volunteers','Step-by-step instructions for the owner')
           text=text.replace('Blue MBA Hub V2 Guide','Orange MBA Hub DEV')
           text=text.replace('Guide evaluation version.','Owner Developer version.')
           text=text.replace('Keep MBA Hub V1 available as a backup. Install V2 once; subsequent updates normally do not require reinstallation.','Keep the blue Guide installed separately. Developer updates normally do not require reinstallation.')
@@ -105,6 +111,9 @@ jobs:
           if(manifest.name!=='MBA Hub DEV'||!env.developer||env.namespace!=='mba-v2-developer')throw Error('Developer identity mismatch');
           if(!help.includes('https://drtforshortaol.github.io/MBA-hub-v2-dev/')||!help.includes('id="copy-guide-url"'))throw Error('Developer copy link missing');
           if(help.includes('https://drtforshortaol.github.io/MBA-hub-v2/'))throw Error('Guide URL leaked into developer help');
+          if(help.includes('Open Guide')||help.includes('Blue MBA')||help.includes('blue Hub icon'))throw Error('Stale Guide branding in Developer help');
+          if(!help.includes('Open Developer')||!help.includes('Orange MBA Hub DEV installation address'))throw Error('Developer labels missing');
+          if(!fs.readFileSync(root+'core/developer.js','utf8').includes('Update check complete.'))throw Error('Visible update feedback missing');
           if(!css.includes('#a64b0b')||!hub.includes('toggleDeveloper'))throw Error('Orange / five-tap behavior changed');
           EOF
       - uses: actions/configure-pages@v5
