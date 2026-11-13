@@ -1,0 +1,46 @@
+name: Publish MBA Hub V2 developer preview
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/kelp-developer-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout development feature source (never production)
+        uses: actions/checkout@v4
+        with:
+          repository: drtforshortaol/MBA-hub-v2
+          ref: feature/kelp-field-guide-20261112
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build developer bundle
+        run: npm run build
+      - name: Run automated tests
+        run: npm test
+      - name: Prepare GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload developer bundle
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/developer
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Publish developer preview only
+        id: deployment
+        uses: actions/deploy-pages@v4
