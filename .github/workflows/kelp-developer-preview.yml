@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: drtforshortaol/MBA-hub-v2
-          ref: feature/kelp-field-guide-20261112
+          ref: 574d430c775a962e9869ac16c60b9570a9c94dd2 # Verified kelp development build
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
