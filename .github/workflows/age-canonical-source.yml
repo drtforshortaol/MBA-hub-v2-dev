@@ -39,6 +39,9 @@ jobs:
           const app=registry.apps.filter(a=>a.app_id==='el-nino');
           assert.equal(app.length,1,'El Niño must have exactly one canonical registry entry');
           assert.equal(app[0].category,'concepts');
+          const dining=registry.apps.filter(a=>a.app_id==='nearby-dining');
+          assert.equal(dining.length,1,'Nearby Dining must remain listed exactly once');
+          assert.equal(dining[0].category,'volunteer-tools');
           const manifest=JSON.parse(fs.readFileSync(root+'manifest.webmanifest','utf8'));
           assert.equal(manifest.name,'MBA Hub DEV');
           assert.equal(manifest.theme_color,'#a64b0b');
