@@ -43,6 +43,10 @@ jobs:
           for(let i=1;i<=18;i++)assert.ok(resources.has(`apps/el-nino/images/slide-${String(i).padStart(2,'0')}.jpg`));
           console.log('Canonical El Niño and 18 offline images: PASS');
           EOF
+      - name: Checkout orange workflow for source inspection
+        uses: actions/checkout@v4
+        with:
+          path: orange-workflow
       - name: Validate no application injection in this workflow
         working-directory: source
-        run: node scripts/age/guard-deployment.mjs ../.github/workflows/age-canonical-source.yml
+        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/age-canonical-source.yml
