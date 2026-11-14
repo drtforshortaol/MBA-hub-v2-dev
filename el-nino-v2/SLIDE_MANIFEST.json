@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "slideCount": 3,
+  "source": "Owner's original El Niño educational slide images",
+  "slides": [
+    {
+      "number": 1,
+      "asset": "images/slide-01.jpg",
+      "status": "awaiting-transfer",
+      "preserveOriginalText": true
+    },
+    {
+      "number": 2,
+      "asset": "images/slide-02.jpg",
+      "status": "awaiting-transfer",
+      "preserveOriginalText": true
+    },
+    {
+      "number": 3,
+      "asset": "images/slide-03.jpg",
+      "status": "awaiting-transfer",
+      "preserveOriginalText": true
+    }
+  ],
+  "publicationPolicy": "Do not publish or use substitute diagrams unless all three original images are present."
+}
