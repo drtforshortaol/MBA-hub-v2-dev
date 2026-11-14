@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/age-canonical-source.yml'
+      - '.github/workflows/deploy-developer.yml'
 permissions:
   contents: read
 jobs:
@@ -49,4 +50,4 @@ jobs:
           path: orange-workflow
       - name: Validate no application injection in this workflow
         working-directory: source
-        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/age-canonical-source.yml
+        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/age-canonical-source.yml ../orange-workflow/.github/workflows/deploy-developer.yml
