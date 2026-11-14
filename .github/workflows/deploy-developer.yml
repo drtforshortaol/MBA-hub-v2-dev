@@ -186,6 +186,33 @@ jobs:
               raise SystemExit('El Niño not registered')
           print('Published El Niño under DEV Hub → Concepts; 18 images verified.')
           PY
+      - name: Rebind offline integrity inventory after El Niño integration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          root=Path('source/dist/developer')
+          manifest=root/'release.json'
+          data=json.loads(manifest.read_text())
+          resources=[]
+          for file in sorted(root.rglob('*')):
+              if not file.is_file() or file.name in ('sw.js','release.json'):
+                  continue
+              rel=file.relative_to(root).as_posix()
+              payload=file.read_bytes()
+              resources.append({'url':rel,'sha256':hashlib.sha256(payload).hexdigest(),'bytes':len(payload)})
+          data['resources']=resources
+          release=hashlib.sha256(json.dumps(resources,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()[:16]
+          data['release']=release
+          manifest.write_text(json.dumps(data,indent=2))
+          sw=root/'sw.js'
+          content=sw.read_text()
+          import re
+          content,count=re.subn(r"RELEASE='[0-9a-f]{16}'",f"RELEASE='{release}'",content,count=1)
+          if count!=1: raise SystemExit('Service worker release marker not found')
+          sw.write_text(content)
+          print(f'El Niño included in integrity-bound release {release}: {len(resources)} files')
+          PY
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
