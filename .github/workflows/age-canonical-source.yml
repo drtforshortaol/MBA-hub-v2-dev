@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: drtforshortaol/MBA-hub-v2
-          ref: 06ed42d298f6f79e900704e3edae177c67ac2be7
+          ref: e3ec2bef5820e0703f43c2d9a1d1a498dcc27726
           path: source
           persist-credentials: false
       - uses: actions/setup-node@v4
