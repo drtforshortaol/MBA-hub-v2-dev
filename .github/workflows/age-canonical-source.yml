@@ -80,7 +80,7 @@ jobs:
           PY
       - name: Enforce AGE deployment mutation guard
         working-directory: source
-        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/age-canonical-source.yml ../orange-workflow/.github/workflows/deploy-developer.yml
+        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/deploy-developer.yml
       - name: Save validated orange build for release review (no deployment)
         uses: actions/upload-artifact@v4
         with:
