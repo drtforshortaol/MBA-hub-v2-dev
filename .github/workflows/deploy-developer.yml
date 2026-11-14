@@ -18,7 +18,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: drtforshortaol/MBA-hub-v2
-          ref: architecture/quarterback-20261114
+          # Immutable reviewed canonical source revision; update only after CI review.
+          ref: 3afcbfe979870fa811f27ccb81607f581fd1e5a1
           path: source
           persist-credentials: false
       - name: Checkout deployment workflow for AGE inspection
