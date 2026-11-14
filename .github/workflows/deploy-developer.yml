@@ -130,6 +130,20 @@ jobs:
               mkdir -p source/dist/developer/el-nino-preview/images
               cp preview-uploads/preview/images/* source/dist/developer/el-nino-preview/images/
             fi
+            python - <<'PY'
+          from pathlib import Path
+          import shutil
+          source=Path('preview-uploads/preview')
+          target=Path('source/dist/developer/el-nino-preview/images')
+          target.mkdir(parents=True, exist_ok=True)
+          mapping=["5194","5172","5195","5169","5192","5171","5193","5170","5173","5185","5168","5187","5189","5174","5190","5191","5175","5178"]
+          for index, number in enumerate(mapping, 1):
+              original=source / f'IMG_{number}.jpeg'
+              if not original.is_file():
+                  raise SystemExit(f'Missing uploaded original: {original}')
+              shutil.copy2(original, target / f'slide-{index:02}.jpg')
+          print(f'Installed {len(mapping)} selected original illustrations.')
+          PY
             echo 'El Niño V2 preview staged with available original images.'
           else
             echo 'Original illustration HTML not uploaded yet; omitting misleading generic preview.'
