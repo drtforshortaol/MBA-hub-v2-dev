@@ -115,6 +115,19 @@ jobs:
           if(!fs.readFileSync(root+'core/developer.js','utf8').includes('Update check complete.'))throw Error('Visible update feedback missing');
           if(!css.includes('#a64b0b')||!hub.includes('toggleDeveloper'))throw Error('Orange / five-tap behavior changed');
           EOF
+      - name: Check out isolated El Niño preview source
+        uses: actions/checkout@v4
+        with:
+          repository: drtforshortaol/MBA-hub-v2
+          ref: work/el-nino-module-20261113
+          path: el-nino-source
+          persist-credentials: false
+      - name: Stage El Niño guide preview without altering Hub release gates
+        run: |
+          mkdir -p source/dist/developer/el-nino-preview
+          cp el-nino-source/src/apps/el-nino/index.html source/dist/developer/el-nino-preview/index.html
+          test -s source/dist/developer/el-nino-preview/index.html
+          grep -q 'El Niño' source/dist/developer/el-nino-preview/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
