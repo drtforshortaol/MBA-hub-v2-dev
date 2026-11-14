@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/deploy-developer.yml'
+      - 'preview/**'
 permissions:
   contents: read
   pages: write
@@ -119,13 +120,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: preview-uploads
-      - name: Publish only the owner's original-illustration El Niño review
+      - name: Publish El Niño V2 placeholder preview and available original images
         run: |
           if test -s preview-uploads/preview/El_Nino_iPhone_Review.html; then
             mkdir -p source/dist/developer/el-nino-preview
             cp preview-uploads/preview/El_Nino_iPhone_Review.html source/dist/developer/el-nino-preview/index.html
             grep -q 'El Niño' source/dist/developer/el-nino-preview/index.html
-            echo 'Original-illustration El Niño preview staged.'
+            if test -d preview-uploads/preview/images; then
+              mkdir -p source/dist/developer/el-nino-preview/images
+              cp preview-uploads/preview/images/* source/dist/developer/el-nino-preview/images/
+            fi
+            echo 'El Niño V2 preview staged with available original images.'
           else
             echo 'Original illustration HTML not uploaded yet; omitting misleading generic preview.'
           fi
