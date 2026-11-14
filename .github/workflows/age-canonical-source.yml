@@ -1,0 +1,90 @@
+name: AGE canonical orange source validation
+# Release-candidate acceptance check; no deployment permissions.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/age-canonical-source.yml'
+      - '.github/workflows/deploy-developer.yml'
+permissions:
+  contents: read
+jobs:
+  validate-canonical:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout canonical source (immutable release candidate)
+        uses: actions/checkout@v4
+        with:
+          repository: drtforshortaol/MBA-hub-v2
+          ref: e3ec2bef5820e0703f43c2d9a1d1a498dcc27726
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate manifests, build, and test release artifacts
+        working-directory: source
+        run: |
+          npm run validate
+          npm run build
+          npm test
+      - name: Validate canonical registry, offline assets, and developer identity
+        working-directory: source
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const root='dist/developer/';
+          const apps=JSON.parse(fs.readFileSync(root+'registry.json','utf8')).apps;
+          for(const [id,category] of [['el-nino','concepts'],['nearby-dining','volunteer-tools']]){
+            const matches=apps.filter(a=>a.app_id===id);
+            assert.equal(matches.length,1,id+' must appear once');
+            assert.equal(matches[0].category,category);
+            assert.ok(fs.existsSync(root+matches[0].entry_point));
+          }
+          const manifest=JSON.parse(fs.readFileSync(root+'manifest.webmanifest','utf8'));
+          assert.equal(manifest.name,'MBA Hub DEV');
+          assert.equal(manifest.theme_color,'#a64b0b');
+          const install=fs.readFileSync(root+'install.html','utf8');
+          assert.ok(install.includes('MBA-hub-v2-dev%2F'),'Orange QR must have developer destination');
+          assert.ok(!install.includes('MBA-hub-v2-test%2F'),'Tester QR leaked into developer');
+          const resources=new Set(JSON.parse(fs.readFileSync(root+'release.json','utf8')).resources.map(r=>r.url));
+          for(let i=1;i<=18;i++)assert.ok(resources.has('apps/el-nino/images/slide-'+String(i).padStart(2,'0')+'.jpg'));
+          console.log('Canonical orange release candidate: PASS');
+          EOF
+      - name: Checkout orange PR workflow source
+        uses: actions/checkout@v4
+        with:
+          path: orange-workflow
+          persist-credentials: false
+      - name: Enforce immutable source parity and manual-only publication
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          directory=Path('orange-workflow/.github/workflows')
+          release=(directory/'deploy-developer.yml').read_text()
+          validation=(directory/'age-canonical-source.yml').read_text()
+          def pinned(text):
+              matches=re.findall(r'^\s+ref: ([0-9a-f]{40})\s*$',text,re.M)
+              if len(matches)!=1: raise SystemExit('Expected exactly one canonical source SHA')
+              return matches[0]
+          if pinned(release)!=pinned(validation): raise SystemExit('Release SHA and CI SHA differ')
+          events=release.split('permissions:',1)[0]
+          if not re.search(r'^  workflow_dispatch:\s*$',events,re.M): raise SystemExit('Missing manual dispatch')
+          for event in ('push','pull_request','schedule','workflow_run'):
+              if re.search(r'^  '+event+r':',events,re.M): raise SystemExit('Forbidden automatic deployment: '+event)
+          for token in ('preview-uploads','el-nino-preview','hub.write_text(code)','code=code.replace('):
+              if token in release: raise SystemExit('Rogue deployment injection: '+token)
+          print('Release pin, manual trigger, and injection protections: PASS')
+          PY
+      - name: Enforce AGE deployment mutation guard
+        working-directory: source
+        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/deploy-developer.yml
+      - name: Save validated orange build for release review (no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mba-hub-orange-canonical-release-candidate
+          path: source/dist/developer
+          if-no-files-found: error
+          retention-days: 7
