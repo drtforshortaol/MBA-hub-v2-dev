@@ -148,6 +148,44 @@ jobs:
           else
             echo 'Original illustration HTML not uploaded yet; omitting misleading generic preview.'
           fi
+      - name: Register approved El Niño preview in orange DEV Hub Concepts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path('source/dist/developer')
+          preview=Path('preview-uploads/preview')
+          target=root/'apps/el-nino'
+          source=preview/'El_Nino_iPhone_Review.html'
+          if not source.is_file():
+              raise SystemExit('El Niño approved preview missing')
+          target.mkdir(parents=True,exist_ok=True)
+          html=source.read_text()
+          html=html.replace('https://drtforshortaol.github.io/MBA-hub-v2-dev/', '../../index.html?home=1')
+          (target/'index.html').write_text(html)
+          image_source=root/'el-nino-preview/images'
+          if not image_source.is_dir():
+              raise SystemExit('El Niño image bundle missing')
+          shutil.copytree(image_source,target/'images',dirs_exist_ok=True)
+          for n in range(1,19):
+              if not (target/'images'/f'slide-{n:02}.jpg').is_file():
+                  raise SystemExit(f'El Niño illustration {n} missing')
+          hub=root/'core/hub.js'
+          code=hub.read_text()
+          before='[...listedHubApps(registry.apps),nearbyDining]'
+          after='[...listedHubApps(registry.apps),nearbyDining,elNino]'
+          if code.count(before)!=1:
+              raise SystemExit('Unexpected Hub registration contract')
+          code=code.replace(before,after)
+          marker='const nearbyDining={'
+          if code.count(marker)!=1:
+              raise SystemExit('Unexpected Hub app definition')
+          code=code.replace(marker,"const elNino={app_id:'el-nino',category:'concepts',title:'El Niño',type:'educational-guide',entry_point:'apps/el-nino/index.html'};\n"+marker)
+          hub.write_text(code)
+          if 'elNino]' not in code:
+              raise SystemExit('El Niño not registered')
+          print('Published El Niño under DEV Hub → Concepts; 18 images verified.')
+          PY
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
