@@ -76,6 +76,26 @@ jobs:
           assert pinned('deploy-developer.yml')==pinned('age-canonical-source.yml'),'Release and test revisions differ'
           print('Immutable canonical source revision parity: PASS')
           PY
+      - name: Enforce manual-only orange release and no preview injection
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          content=Path('orange-workflow/.github/workflows/deploy-developer.yml').read_text()
+          events=content.split('permissions:',1)[0]
+          if not re.search(r'^  workflow_dispatch:\s*
+        working-directory: source
+        run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/age-canonical-source.yml ../orange-workflow/.github/workflows/deploy-developer.yml
+,events,re.M):
+            raise SystemExit('Orange publication must require workflow_dispatch')
+          for event in ('push','pull_request','schedule','workflow_run'):
+            if re.search(r'^  '+event+r':',events,re.M):
+              raise SystemExit(f'Automatic publication trigger prohibited: {event}')
+          for prohibited in ('preview-uploads','el-nino-preview','hub.write_text(code)','code=code.replace('):
+            if prohibited in content:
+              raise SystemExit(f'Deployment source injection prohibited: {prohibited}')
+          print('Orange publication safety: manual-only, canonical content, no injection: PASS')
+          PY
       - name: Validate no application injection in this workflow
         working-directory: source
         run: node scripts/age/guard-deployment.mjs ../orange-workflow/.github/workflows/age-canonical-source.yml ../orange-workflow/.github/workflows/deploy-developer.yml
