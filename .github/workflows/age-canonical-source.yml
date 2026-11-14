@@ -42,6 +42,7 @@ jobs:
           const dining=registry.apps.filter(a=>a.app_id==='nearby-dining');
           assert.equal(dining.length,1,'Nearby Dining must remain listed exactly once');
           assert.equal(dining[0].category,'volunteer-tools');
+          assert.ok(fs.existsSync(root+'apps/nearby-dining/index.html'));
           const manifest=JSON.parse(fs.readFileSync(root+'manifest.webmanifest','utf8'));
           assert.equal(manifest.name,'MBA Hub DEV');
           assert.equal(manifest.theme_color,'#a64b0b');
