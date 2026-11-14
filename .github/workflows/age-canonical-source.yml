@@ -1,0 +1,48 @@
+name: AGE canonical orange source validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/age-canonical-source.yml'
+permissions:
+  contents: read
+jobs:
+  validate-canonical:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout canonical MBA Hub V2 source
+        uses: actions/checkout@v4
+        with:
+          repository: drtforshortaol/MBA-hub-v2
+          ref: architecture/quarterback-20261114
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate AGE and app manifests
+        working-directory: source
+        run: |
+          npm run validate
+          npm test
+          npm run build
+      - name: Assert El Niño comes from the canonical registry and offline bundle
+        working-directory: source
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const root='dist/developer/';
+          const registry=JSON.parse(fs.readFileSync(root+'registry.json','utf8'));
+          const app=registry.apps.filter(a=>a.app_id==='el-nino');
+          assert.equal(app.length,1,'El Niño must have exactly one canonical registry entry');
+          assert.equal(app[0].category,'concepts');
+          const release=JSON.parse(fs.readFileSync(root+'release.json','utf8'));
+          const resources=new Set(release.resources.map(r=>r.url));
+          assert.ok(resources.has('apps/el-nino/index.html'));
+          for(let i=1;i<=18;i++)assert.ok(resources.has(`apps/el-nino/images/slide-${String(i).padStart(2,'0')}.jpg`));
+          console.log('Canonical El Niño and 18 offline images: PASS');
+          EOF
+      - name: Validate no application injection in this workflow
+        working-directory: source
+        run: node scripts/age/guard-deployment.mjs ../.github/workflows/age-canonical-source.yml
