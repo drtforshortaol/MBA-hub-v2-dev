@@ -19,7 +19,7 @@ jobs:
         with:
           repository: drtforshortaol/MBA-hub-v2
           # Immutable reviewed canonical source revision; update only after CI review.
-          ref: e3ec2bef5820e0703f43c2d9a1d1a498dcc27726
+          ref: 73164a20cbeadc851faeb1e4e8f2b2bf810c4423
           path: source
           persist-credentials: false
       - name: Checkout deployment workflow for AGE inspection
